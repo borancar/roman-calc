@@ -3,17 +3,46 @@ package roman
 import "strings"
 
 var values = map[string]int{
-	"I": 1,
-	"V": 5,
-	"X": 10,
-	"L": 50,
-	"C": 100,
-	"D": 500,
-	"M": 1000,
+	"I":  1,
+	"IV": 4,
+	"V":  5,
+	"IX": 9,
+	"X":  10,
+	"XL": 40,
+	"L":  50,
+	"XC": 90,
+	"C":  100,
+	"CD": 400,
+	"D":  500,
+	"CM": 900,
+	"M":  1000,
 }
 
 func ToInteger(n string) int {
-	return values[string(n[0])]
+	value := 0
+
+	for i := 0; i < len(n); i++ {
+		candidate := ""
+
+		if i+1 < len(n) {
+			candidate = string(n[i]) + string(n[i+1])
+		}
+
+		v, ok := values[candidate]
+		if ok {
+			value += v
+			i++
+			continue
+		}
+
+		candidate = string(n[i])
+		v, ok = values[candidate]
+		if ok {
+			value += v
+		}
+	}
+
+	return value
 }
 
 func FromInteger(n int) string {
