@@ -9,8 +9,44 @@ func TestRomanSingle(t *testing.T) {
 	}
 }
 
-func TestYears(t *testing.T) {
-	if v := roman.FromInteger(2018); v != "MMXVIII" {
-		t.Fatalf("Wrong value for 2018, expected %s, was %s", "MMXVIII", v)
+func TestDecimalToRoman(t *testing.T) {
+	var values = []struct {
+		roman   string
+		decimal int
+	}{
+		{
+			roman:   "MMXVIII",
+			decimal: 2018,
+		},
+		{
+			roman:   "MCMLXXXVII",
+			decimal: 1987,
+		},
+		{
+			roman:   "CCXXVI",
+			decimal: 226,
+		},
+		{
+			roman:   "CM",
+			decimal: 900,
+		},
+		{
+			roman:   "MDCCXII",
+			decimal: 1712,
+		},
+		{
+			roman:   "CMXCVIII",
+			decimal: 998,
+		},
+		{
+			roman:   "LXIV",
+			decimal: 64,
+		},
+	}
+
+	for _, value := range values {
+		if v := roman.FromInteger(value.decimal); v != value.roman {
+			t.Fatalf("Wrong value for %d, expected %s, was %s", value.decimal, value.roman, v)
+		}
 	}
 }
