@@ -78,3 +78,15 @@ func TestDecimalToRoman(t *testing.T) {
 		}
 	}
 }
+
+func TestIdentityFirst5000Numbers(t *testing.T) {
+	// First 5000 suffices since there's no literal for 5000
+	for n := 1; n <= 5000; n++ {
+		romanValue := roman.FromInteger(n)
+		decimalValue := roman.ToInteger(romanValue)
+
+		if decimalValue != n {
+			t.Fatalf("Identity problem for %d, fromInteger %s, toInteger %d", n, romanValue, decimalValue)
+		}
+	}
+}
