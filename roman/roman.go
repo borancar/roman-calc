@@ -19,64 +19,69 @@ func ToInteger(n string) int {
 func FromInteger(n int) string {
 	var b strings.Builder
 
-	for n >= 1000 {
-		b.WriteString("M")
-		n -= 1000
+	var falldowns = []struct {
+		roman string
+		value int
+	}{
+		{
+			roman: "M",
+			value: 1000,
+		},
+		{
+			roman: "CM",
+			value: 900,
+		},
+		{
+			roman: "D",
+			value: 500,
+		},
+		{
+			roman: "CD",
+			value: 400,
+		},
+		{
+			roman: "C",
+			value: 100,
+		},
+		{
+			roman: "XC",
+			value: 90,
+		},
+		{
+			roman: "L",
+			value: 50,
+		},
+		{
+			roman: "XL",
+			value: 40,
+		},
+		{
+			roman: "X",
+			value: 10,
+		},
+		{
+			roman: "IX",
+			value: 9,
+		},
+		{
+			roman: "V",
+			value: 5,
+		},
+		{
+			roman: "IV",
+			value: 4,
+		},
+		{
+			roman: "I",
+			value: 1,
+		},
 	}
 
-	if n >= 900 {
-		b.WriteString("CM")
-		n -= 900
-	}
-
-	if n >= 500 {
-		b.WriteString("D")
-		n -= 500
-	}
-
-	if n >= 400 {
-		b.WriteString("CD")
-		n -= 400
-	}
-
-	for n >= 100 {
-		b.WriteString("C")
-		n -= 100
-	}
-
-	if n >= 90 {
-		b.WriteString("XC")
-		n -= 90
-	}
-
-	if n >= 50 {
-		b.WriteString("L")
-		n -= 50
-	}
-
-	if n >= 40 {
-		b.WriteString("XL")
-		n -= 40
-	}
-
-	for n >= 10 {
-		b.WriteString("X")
-		n -= 10
-	}
-
-	if n >= 9 {
-		b.WriteString("IX")
-		n -= 9
-	}
-
-	if n >= 5 {
-		b.WriteString("V")
-		n -= 5
-	}
-
-	for n >= 1 {
-		b.WriteString("I")
-		n -= 1
+	for i := 0; i < len(falldowns); i++ {
+		for n >= falldowns[i].value {
+			b.WriteString(falldowns[i].roman)
+			n -= falldowns[i].value
+		}
 	}
 
 	return b.String()
