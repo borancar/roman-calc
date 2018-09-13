@@ -3,6 +3,13 @@
 	<head>
 	</head>
 	<body>
+		Errors:
+		<ul>
+			{{- range .errs }}
+			<li> {{ . }}
+			{{- end }}
+		</ul>
+
 		<form>
 			Enter expression: <input type="text" name="expr" value="{{ .expr }}">
 			<input type="submit" value="submit">

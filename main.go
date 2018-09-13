@@ -1,6 +1,8 @@
 package main
 
 import (
+	"errors"
+	"fmt"
 	"github.com/antlr/antlr4/runtime/Go/antlr"
 	log "github.com/sirupsen/logrus"
 	"html/template"
@@ -25,71 +27,104 @@ func (s Stack) Pop() (Stack, int) {
 type TreeShapeListener struct {
 	*parser.BaseMathListener
 	stack Stack
+	el    *ErrorListener
 }
 
-func NewTreeShapeListener() *TreeShapeListener {
-	return new(TreeShapeListener)
+func NewTreeShapeListener(el *ErrorListener) *TreeShapeListener {
+	return &TreeShapeListener{
+		el: el,
+	}
 }
 
 func (t *TreeShapeListener) ExitSub(c *parser.SubContext) {
-	var op1, op2 int
-	t.stack, op2 = t.stack.Pop()
-	t.stack, op1 = t.stack.Pop()
+	if len(t.el.Errors) == 0 {
+		var op1, op2 int
+		t.stack, op2 = t.stack.Pop()
+		t.stack, op1 = t.stack.Pop()
 
-	t.stack = t.stack.Push(op1 - op2)
+		t.stack = t.stack.Push(op1 - op2)
+	}
 }
 
 func (t *TreeShapeListener) ExitAdd(c *parser.AddContext) {
-	var op1, op2 int
-	t.stack, op2 = t.stack.Pop()
-	t.stack, op1 = t.stack.Pop()
+	if len(t.el.Errors) == 0 {
+		var op1, op2 int
+		t.stack, op2 = t.stack.Pop()
+		t.stack, op1 = t.stack.Pop()
 
-	t.stack = t.stack.Push(op1 + op2)
+		t.stack = t.stack.Push(op1 + op2)
+	}
 }
 
 func (t *TreeShapeListener) ExitMul(c *parser.MulContext) {
-	var op1, op2 int
-	t.stack, op2 = t.stack.Pop()
-	t.stack, op1 = t.stack.Pop()
+	if len(t.el.Errors) == 0 {
+		var op1, op2 int
+		t.stack, op2 = t.stack.Pop()
+		t.stack, op1 = t.stack.Pop()
 
-	t.stack = t.stack.Push(op1 * op2)
+		t.stack = t.stack.Push(op1 * op2)
+	}
 }
 
 func (t *TreeShapeListener) ExitDiv(c *parser.DivContext) {
-	var op1, op2 int
-	t.stack, op2 = t.stack.Pop()
-	t.stack, op1 = t.stack.Pop()
+	if len(t.el.Errors) == 0 {
+		var op1, op2 int
+		t.stack, op2 = t.stack.Pop()
+		t.stack, op1 = t.stack.Pop()
 
-	t.stack = t.stack.Push(op1 / op2)
+		t.stack = t.stack.Push(op1 / op2)
+	}
 }
 
 func (t *TreeShapeListener) ExitOrder(c *parser.OrderContext) {
-	var op1, op2 int
-	t.stack, op2 = t.stack.Pop()
-	t.stack, op1 = t.stack.Pop()
+	if len(t.el.Errors) == 0 {
+		var op1, op2 int
+		t.stack, op2 = t.stack.Pop()
+		t.stack, op1 = t.stack.Pop()
 
-	t.stack = t.stack.Push(int(math.Round(math.Pow(float64(op1), float64(op2)))))
+		t.stack = t.stack.Push(int(math.Round(math.Pow(float64(op1), float64(op2)))))
+	}
 }
 
 func (t *TreeShapeListener) ExitNum(c *parser.NumContext) {
-	t.stack = append(t.stack, roman.ToInteger(c.GetText()))
+	if len(t.el.Errors) == 0 {
+		t.stack = t.stack.Push(roman.ToInteger(c.GetText()))
+	}
 }
 
-func evaluateExpr(expr string) (int, error) {
+type ErrorListener struct {
+	*antlr.DefaultErrorListener
+	Errors []error
+}
+
+func NewErrorListener() *ErrorListener {
+	return new(ErrorListener)
+}
+
+func (el *ErrorListener) SyntaxError(recognizer antlr.Recognizer, offendingSymbol interface{}, line, column int, msg string, e antlr.RecognitionException) {
+	el.Errors = append(el.Errors, errors.New(fmt.Sprintf("Position %d: %s", column, msg)))
+}
+
+func evaluateExpr(expr string) (int, []error) {
+	errorListener := NewErrorListener()
+	treeListener := NewTreeShapeListener(errorListener)
+
 	input := antlr.NewInputStream(expr)
 	lexer := parser.NewMathLexer(input)
+	lexer.AddErrorListener(errorListener)
 	stream := antlr.NewCommonTokenStream(lexer, 0)
 	p := parser.NewMathParser(stream)
-	p.AddErrorListener(antlr.NewDiagnosticErrorListener(true))
+	p.AddErrorListener(errorListener)
 	p.BuildParseTrees = true
 	tree := p.Expr()
-	listener := NewTreeShapeListener()
-	antlr.ParseTreeWalkerDefault.Walk(listener, tree)
+	antlr.ParseTreeWalkerDefault.Walk(treeListener, tree)
 
 	var intResult int
-	listener.stack, intResult = listener.stack.Pop()
+	if len(errorListener.Errors) == 0 {
+		treeListener.stack, intResult = treeListener.stack.Pop()
+	}
 
-	return intResult, nil
+	return intResult, errorListener.Errors
 }
 
 type Server struct {
@@ -104,28 +139,28 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var err error
+	var parseErrs []error
 	var expr string
 	var result string
 	expr = r.FormValue("expr")
 	if expr != "" {
 		var intResult int
-		intResult, err = evaluateExpr(expr)
+		intResult, parseErrs = evaluateExpr(expr)
 		result = roman.FromInteger(intResult)
 	}
 
-	var errMsg string
-	if err != nil {
-		errMsg = err.Error()
+	var errMsgs []string
+	for _, e := range parseErrs {
+		errMsgs = append(errMsgs, e.Error())
 	}
 
-	data := map[string]string{
-		"err":    errMsg,
+	data := map[string]interface{}{
+		"errs":   errMsgs,
 		"expr":   expr,
 		"result": result,
 	}
 
-	if err = s.Template.Execute(w, data); err != nil {
+	if err := s.Template.Execute(w, data); err != nil {
 		log.Error(err)
 		http.Error(w, "Server Error", http.StatusInternalServerError)
 	}
