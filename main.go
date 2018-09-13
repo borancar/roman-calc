@@ -132,20 +132,7 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	template, err := template.New("index").Parse(`
-		<!DOCTYPE html> 
-		<html>
-			<head>
-			</head>
-			<body>
-				<form>
-					Enter expression: <input type="text" name="expr" value="{{ .expr }}">
-					<input type="submit" value="submit">
-				</form>
-
-				Result: {{ .result }}
-			</body>
-		</html>`)
+	template, err := template.ParseFiles("templates/index.html")
 	if err != nil {
 		log.Error(err)
 		return
