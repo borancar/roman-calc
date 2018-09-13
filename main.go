@@ -75,6 +75,23 @@ func (t *TreeShapeListener) ExitNum(c *parser.NumContext) {
 	t.stack = append(t.stack, roman.ToInteger(c.GetText()))
 }
 
+func evaluateExpr(expr string) (int, error) {
+	input := antlr.NewInputStream(expr)
+	lexer := parser.NewMathLexer(input)
+	stream := antlr.NewCommonTokenStream(lexer, 0)
+	p := parser.NewMathParser(stream)
+	p.AddErrorListener(antlr.NewDiagnosticErrorListener(true))
+	p.BuildParseTrees = true
+	tree := p.Expr()
+	listener := NewTreeShapeListener()
+	antlr.ParseTreeWalkerDefault.Walk(listener, tree)
+
+	var intResult int
+	listener.stack, intResult = listener.stack.Pop()
+
+	return intResult, nil
+}
+
 func handleIndex(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
@@ -84,18 +101,7 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 	expr = r.FormValue("expr")
 
 	if expr != "" {
-		input := antlr.NewInputStream(r.FormValue("expr"))
-		lexer := parser.NewMathLexer(input)
-		stream := antlr.NewCommonTokenStream(lexer, 0)
-		p := parser.NewMathParser(stream)
-		p.AddErrorListener(antlr.NewDiagnosticErrorListener(true))
-		p.BuildParseTrees = true
-		tree := p.Expr()
-		listener := NewTreeShapeListener()
-		antlr.ParseTreeWalkerDefault.Walk(listener, tree)
-
-		var intResult int
-		listener.stack, intResult = listener.stack.Pop()
+		intResult, _ := evaluateExpr(expr)
 		result = roman.FromInteger(intResult)
 	}
 
