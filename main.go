@@ -8,6 +8,7 @@ import (
 	"html/template"
 	"math"
 	"net/http"
+	"os"
 	"roman-calc/parser"
 	"roman-calc/roman"
 )
@@ -170,7 +171,7 @@ func main() {
 	template, err := template.ParseFiles("templates/index.html")
 	if err != nil {
 		log.Error(err)
-		return
+		os.Exit(1)
 	}
 
 	server := &Server{
@@ -179,5 +180,8 @@ func main() {
 	http.HandleFunc("/", server.handleIndex)
 
 	log.Info("Listening on :8080")
-	http.ListenAndServe(":8080", nil)
+	if err = http.ListenAndServe(":8080", nil); err != nil {
+		log.Error(err)
+		os.Exit(1)
+	}
 }
