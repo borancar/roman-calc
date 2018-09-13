@@ -1,11 +1,11 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"github.com/antlr/antlr4/runtime/Go/antlr"
+	"html/template"
 	"math"
-	"os"
+	"net/http"
 	"roman-calc/parser"
 	"roman-calc/roman"
 )
@@ -75,17 +75,16 @@ func (t *TreeShapeListener) ExitNum(c *parser.NumContext) {
 	t.stack = append(t.stack, roman.ToInteger(c.GetText()))
 }
 
-func main() {
-	scanner := bufio.NewScanner(os.Stdin)
-	for {
-		fmt.Print("Enter expression: ")
-		scanner.Scan()
-		text := scanner.Text()
-		if len(text) == 0 {
-			break
-		}
+func handleIndex(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
 
-		input := antlr.NewInputStream(text)
+	var expr string
+	var result string
+
+	expr = r.FormValue("expr")
+
+	if expr != "" {
+		input := antlr.NewInputStream(r.FormValue("expr"))
 		lexer := parser.NewMathLexer(input)
 		stream := antlr.NewCommonTokenStream(lexer, 0)
 		p := parser.NewMathParser(stream)
@@ -95,8 +94,48 @@ func main() {
 		listener := NewTreeShapeListener()
 		antlr.ParseTreeWalkerDefault.Walk(listener, tree)
 
-		var res int
-		listener.stack, res = listener.stack.Pop()
-		fmt.Printf("Result: %s\n", roman.FromInteger(res))
+		var intResult int
+		listener.stack, intResult = listener.stack.Pop()
+		result = roman.FromInteger(intResult)
 	}
+
+	template, err := template.New("index").Parse(`
+		<!DOCTYPE html> 
+		<html>
+			<head>
+			</head>
+			<body>
+				<form>
+					Enter expression: <input type="text" name="expr" value="{{ .expr }}">
+					<input type="submit" value="submit">
+				</form>
+
+				Result: {{ .result }}
+			</body>
+		</html>`)
+	if err != nil {
+		fmt.Print(err)
+		http.Error(w, "Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	if r.Method != "GET" && r.Method != "POST" {
+		http.Error(w, "Only GET and POST are supported.", http.StatusMethodNotAllowed)
+		return
+	}
+
+	data := map[string]string{
+		"expr":   expr,
+		"result": result,
+	}
+
+	if err = template.Execute(w, data); err != nil {
+		fmt.Print(err)
+		http.Error(w, "Server Error", http.StatusInternalServerError)
+	}
+}
+
+func main() {
+	http.HandleFunc("/", handleIndex)
+	http.ListenAndServe(":8080", nil)
 }
