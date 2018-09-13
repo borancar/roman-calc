@@ -92,9 +92,46 @@ func evaluateExpr(expr string) (int, error) {
 	return intResult, nil
 }
 
-func handleIndex(w http.ResponseWriter, r *http.Request) {
+type Server struct {
+	Template *template.Template
+}
+
+func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
+	if r.Method != "GET" && r.Method != "POST" {
+		http.Error(w, "Only GET and POST are supported.", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var err error
+	var expr string
+	var result string
+	expr = r.FormValue("expr")
+	if expr != "" {
+		var intResult int
+		intResult, err = evaluateExpr(expr)
+		result = roman.FromInteger(intResult)
+	}
+
+	var errMsg string
+	if err != nil {
+		errMsg = err.Error()
+	}
+
+	data := map[string]string{
+		"err":    errMsg,
+		"expr":   expr,
+		"result": result,
+	}
+
+	if err = s.Template.Execute(w, data); err != nil {
+		fmt.Print(err)
+		http.Error(w, "Server Error", http.StatusInternalServerError)
+	}
+}
+
+func main() {
 	template, err := template.New("index").Parse(`
 		<!DOCTYPE html> 
 		<html>
@@ -111,42 +148,12 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 		</html>`)
 	if err != nil {
 		fmt.Print(err)
-		http.Error(w, "Server Error", http.StatusInternalServerError)
 		return
 	}
 
-	if r.Method != "GET" && r.Method != "POST" {
-		http.Error(w, "Only GET and POST are supported.", http.StatusMethodNotAllowed)
-		return
+	server := &Server{
+		Template: template,
 	}
-
-	var errMsg string
-	var expr string
-	var result string
-	expr = r.FormValue("expr")
-	if expr != "" {
-		var intResult int
-		intResult, err = evaluateExpr(expr)
-		result = roman.FromInteger(intResult)
-	}
-
-	if err != nil {
-		errMsg = err.Error()
-	}
-
-	data := map[string]string{
-		"err":    errMsg,
-		"expr":   expr,
-		"result": result,
-	}
-
-	if err = template.Execute(w, data); err != nil {
-		fmt.Print(err)
-		http.Error(w, "Server Error", http.StatusInternalServerError)
-	}
-}
-
-func main() {
-	http.HandleFunc("/", handleIndex)
+	http.HandleFunc("/", server.handleIndex)
 	http.ListenAndServe(":8080", nil)
 }
