@@ -95,16 +95,6 @@ func evaluateExpr(expr string) (int, error) {
 func handleIndex(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
-	var expr string
-	var result string
-
-	expr = r.FormValue("expr")
-
-	if expr != "" {
-		intResult, _ := evaluateExpr(expr)
-		result = roman.FromInteger(intResult)
-	}
-
 	template, err := template.New("index").Parse(`
 		<!DOCTYPE html> 
 		<html>
@@ -130,7 +120,22 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var errMsg string
+	var expr string
+	var result string
+	expr = r.FormValue("expr")
+	if expr != "" {
+		var intResult int
+		intResult, err = evaluateExpr(expr)
+		result = roman.FromInteger(intResult)
+	}
+
+	if err != nil {
+		errMsg = err.Error()
+	}
+
 	data := map[string]string{
+		"err":    errMsg,
 		"expr":   expr,
 		"result": result,
 	}
