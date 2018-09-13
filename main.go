@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"github.com/antlr/antlr4/runtime/Go/antlr"
+	log "github.com/sirupsen/logrus"
 	"html/template"
 	"math"
 	"net/http"
@@ -126,7 +126,7 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err = s.Template.Execute(w, data); err != nil {
-		fmt.Print(err)
+		log.Error(err)
 		http.Error(w, "Server Error", http.StatusInternalServerError)
 	}
 }
@@ -147,7 +147,7 @@ func main() {
 			</body>
 		</html>`)
 	if err != nil {
-		fmt.Print(err)
+		log.Error(err)
 		return
 	}
 
@@ -155,5 +155,7 @@ func main() {
 		Template: template,
 	}
 	http.HandleFunc("/", server.handleIndex)
+
+	log.Info("Listening on :8080")
 	http.ListenAndServe(":8080", nil)
 }
