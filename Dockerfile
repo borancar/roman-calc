@@ -14,3 +14,4 @@ ENTRYPOINT ./roman-calc
 
 COPY --from=build /go/src/roman-calc/roman-calc .
 COPY --from=build /go/src/roman-calc/templates ./templates
+COPY --from=build /go/src/roman-calc/swagger.yaml .
