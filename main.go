@@ -5,14 +5,17 @@ import (
 	"fmt"
 	"github.com/antlr/antlr4/runtime/Go/antlr"
 	loads "github.com/go-openapi/loads"
+	middleware "github.com/go-openapi/runtime/middleware"
 	log "github.com/sirupsen/logrus"
 	"html/template"
 	"math"
 	"net/http"
 	"os"
+	"roman-calc/models"
 	"roman-calc/parser"
 	"roman-calc/restapi"
 	"roman-calc/restapi/operations"
+	"roman-calc/restapi/operations/calc"
 	"roman-calc/roman"
 )
 
@@ -188,6 +191,16 @@ func main() {
 		os.Exit(1)
 	}
 	api := operations.NewRomanCalculatorAPI(swaggerSpec)
+	api.CalcCalcExprHandler = calc.CalcExprHandlerFunc(func(params calc.CalcExprParams) middleware.Responder {
+		intResult, errs := evaluateExpr(params.Expr)
+		data := &models.Result{}
+		for _, err := range errs {
+			data.Errs = append(data.Errs, err.Error())
+		}
+		data.Expr = params.Expr
+		data.Result = roman.FromInteger(intResult)
+		return calc.NewCalcExprOK().WithPayload(data)
+	})
 	http.Handle("/calc", api.Serve(nil))
 
 	log.Info("Listening on :8080")
