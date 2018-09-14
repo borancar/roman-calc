@@ -1,0 +1,58 @@
+swagger: "2.0"
+info:
+  description: "Roman Calculator allows you to evaluate mathematical expressions
+  with roman numbers (I, IV, V, X, L, C, M...). Expressions are evaluated
+  according to BODMAS:\n
+  - Brackets ()\n
+  - Order ^\n
+  - Multiplication *\n
+  - Addition +\n
+  - Subtraction -"
+  version: "1.0.0"
+  title: "Roman Calculator"
+schemes:
+- "http"
+paths:
+  /calc:
+    get:
+      tags:
+      - "calc"
+      summary: "Compute the result of an expression"
+      description: ""
+      operationId: "calcExpr"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "query"
+        name: "expr"
+        type: "string"
+        description: "Roman expression to calculate, e.g. \"I*(II+III)\""
+        required: true
+      responses:
+        200:
+          description: "Result of computing the expression"
+          schema:
+            $ref: "#/definitions/Result"
+        400:
+          description: "Invalid request"
+definitions:
+  Expr:
+    type: "string"
+    example: "I*(II+III)"
+  Result:
+    type: "object"
+    properties:
+      errs:
+        type: "array"
+        items:
+          type: "string"
+        example: []
+      expr:
+        type: "string"
+        example: "I*(II+III)"
+      result:
+        type: "string"
+        example: "V"
+        

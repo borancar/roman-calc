@@ -4,12 +4,15 @@ import (
 	"errors"
 	"fmt"
 	"github.com/antlr/antlr4/runtime/Go/antlr"
+	loads "github.com/go-openapi/loads"
 	log "github.com/sirupsen/logrus"
 	"html/template"
 	"math"
 	"net/http"
 	"os"
 	"roman-calc/parser"
+	"roman-calc/restapi"
+	"roman-calc/restapi/operations"
 	"roman-calc/roman"
 )
 
@@ -178,6 +181,14 @@ func main() {
 		Template: template,
 	}
 	http.HandleFunc("/", server.handleIndex)
+
+	swaggerSpec, err := loads.Embedded(restapi.SwaggerJSON, restapi.FlatSwaggerJSON)
+	if err != nil {
+		log.Error(err)
+		os.Exit(1)
+	}
+	api := operations.NewRomanCalculatorAPI(swaggerSpec)
+	http.Handle("/calc", api.Serve(nil))
 
 	log.Info("Listening on :8080")
 	if err = http.ListenAndServe(":8080", nil); err != nil {
