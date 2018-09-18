@@ -27,38 +27,26 @@ func (s *BaseMathListener) EnterOrder(ctx *OrderContext) {}
 // ExitOrder is called when production Order is exited.
 func (s *BaseMathListener) ExitOrder(ctx *OrderContext) {}
 
-// EnterDiv is called when production Div is entered.
-func (s *BaseMathListener) EnterDiv(ctx *DivContext) {}
-
-// ExitDiv is called when production Div is exited.
-func (s *BaseMathListener) ExitDiv(ctx *DivContext) {}
-
-// EnterAdd is called when production Add is entered.
-func (s *BaseMathListener) EnterAdd(ctx *AddContext) {}
-
-// ExitAdd is called when production Add is exited.
-func (s *BaseMathListener) ExitAdd(ctx *AddContext) {}
-
-// EnterSub is called when production Sub is entered.
-func (s *BaseMathListener) EnterSub(ctx *SubContext) {}
-
-// ExitSub is called when production Sub is exited.
-func (s *BaseMathListener) ExitSub(ctx *SubContext) {}
-
 // EnterBrace is called when production Brace is entered.
 func (s *BaseMathListener) EnterBrace(ctx *BraceContext) {}
 
 // ExitBrace is called when production Brace is exited.
 func (s *BaseMathListener) ExitBrace(ctx *BraceContext) {}
 
-// EnterMul is called when production Mul is entered.
-func (s *BaseMathListener) EnterMul(ctx *MulContext) {}
+// EnterAddSub is called when production AddSub is entered.
+func (s *BaseMathListener) EnterAddSub(ctx *AddSubContext) {}
 
-// ExitMul is called when production Mul is exited.
-func (s *BaseMathListener) ExitMul(ctx *MulContext) {}
+// ExitAddSub is called when production AddSub is exited.
+func (s *BaseMathListener) ExitAddSub(ctx *AddSubContext) {}
 
 // EnterNum is called when production Num is entered.
 func (s *BaseMathListener) EnterNum(ctx *NumContext) {}
 
 // ExitNum is called when production Num is exited.
 func (s *BaseMathListener) ExitNum(ctx *NumContext) {}
+
+// EnterDivMul is called when production DivMul is entered.
+func (s *BaseMathListener) EnterDivMul(ctx *DivMulContext) {}
+
+// ExitDivMul is called when production DivMul is exited.
+func (s *BaseMathListener) ExitDivMul(ctx *DivMulContext) {}

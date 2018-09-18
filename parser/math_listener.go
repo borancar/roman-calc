@@ -11,42 +11,30 @@ type MathListener interface {
 	// EnterOrder is called when entering the Order production.
 	EnterOrder(c *OrderContext)
 
-	// EnterDiv is called when entering the Div production.
-	EnterDiv(c *DivContext)
-
-	// EnterAdd is called when entering the Add production.
-	EnterAdd(c *AddContext)
-
-	// EnterSub is called when entering the Sub production.
-	EnterSub(c *SubContext)
-
 	// EnterBrace is called when entering the Brace production.
 	EnterBrace(c *BraceContext)
 
-	// EnterMul is called when entering the Mul production.
-	EnterMul(c *MulContext)
+	// EnterAddSub is called when entering the AddSub production.
+	EnterAddSub(c *AddSubContext)
 
 	// EnterNum is called when entering the Num production.
 	EnterNum(c *NumContext)
 
+	// EnterDivMul is called when entering the DivMul production.
+	EnterDivMul(c *DivMulContext)
+
 	// ExitOrder is called when exiting the Order production.
 	ExitOrder(c *OrderContext)
-
-	// ExitDiv is called when exiting the Div production.
-	ExitDiv(c *DivContext)
-
-	// ExitAdd is called when exiting the Add production.
-	ExitAdd(c *AddContext)
-
-	// ExitSub is called when exiting the Sub production.
-	ExitSub(c *SubContext)
 
 	// ExitBrace is called when exiting the Brace production.
 	ExitBrace(c *BraceContext)
 
-	// ExitMul is called when exiting the Mul production.
-	ExitMul(c *MulContext)
+	// ExitAddSub is called when exiting the AddSub production.
+	ExitAddSub(c *AddSubContext)
 
 	// ExitNum is called when exiting the Num production.
 	ExitNum(c *NumContext)
+
+	// ExitDivMul is called when exiting the DivMul production.
+	ExitDivMul(c *DivMulContext)
 }

@@ -43,43 +43,33 @@ func NewTreeShapeListener(el *ErrorListener) *TreeShapeListener {
 	}
 }
 
-func (t *TreeShapeListener) ExitSub(c *parser.SubContext) {
+func (t *TreeShapeListener) ExitAddSub(c *parser.AddSubContext) {
 	if len(t.el.Errors) == 0 {
 		var op1, op2 int
 		t.stack, op2 = t.stack.Pop()
 		t.stack, op1 = t.stack.Pop()
 
-		t.stack = t.stack.Push(op1 - op2)
+		switch c.GetOp().GetTokenType() {
+		case parser.MathParserADD:
+			t.stack = t.stack.Push(op1 + op2)
+		case parser.MathParserSUB:
+			t.stack = t.stack.Push(op1 - op2)
+		}
 	}
 }
 
-func (t *TreeShapeListener) ExitAdd(c *parser.AddContext) {
+func (t *TreeShapeListener) ExitDivMul(c *parser.DivMulContext) {
 	if len(t.el.Errors) == 0 {
 		var op1, op2 int
 		t.stack, op2 = t.stack.Pop()
 		t.stack, op1 = t.stack.Pop()
 
-		t.stack = t.stack.Push(op1 + op2)
-	}
-}
-
-func (t *TreeShapeListener) ExitMul(c *parser.MulContext) {
-	if len(t.el.Errors) == 0 {
-		var op1, op2 int
-		t.stack, op2 = t.stack.Pop()
-		t.stack, op1 = t.stack.Pop()
-
-		t.stack = t.stack.Push(op1 * op2)
-	}
-}
-
-func (t *TreeShapeListener) ExitDiv(c *parser.DivContext) {
-	if len(t.el.Errors) == 0 {
-		var op1, op2 int
-		t.stack, op2 = t.stack.Pop()
-		t.stack, op1 = t.stack.Pop()
-
-		t.stack = t.stack.Push(op1 / op2)
+		switch c.GetOp().GetTokenType() {
+		case parser.MathParserDIV:
+			t.stack = t.stack.Push(op1 / op2)
+		case parser.MathParserMUL:
+			t.stack = t.stack.Push(op1 * op2)
+		}
 	}
 }
 

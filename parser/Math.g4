@@ -1,13 +1,11 @@
 grammar Math;
 
 expr
-    : LPAREN expr RPAREN # Brace
-    | expr POW expr      # Order
-    | expr DIV expr      # Div
-    | expr MUL expr      # Mul
-    | expr ADD expr      # Add
-    | expr SUB expr      # Sub
-    | ROMAN              # Num
+    : LPAREN expr RPAREN     # Brace
+    | expr POW expr          # Order
+    | expr op=(DIV|MUL) expr # DivMul
+    | expr op=(ADD|SUB) expr # AddSub
+    | ROMAN                  # Num
     ;
 
 ADD : '+' ;
