@@ -119,6 +119,13 @@ func evaluateExpr(expr string) (int, []error) {
 	var intResult int
 	if len(errorListener.Errors) == 0 {
 		treeListener.stack, intResult = treeListener.stack.Pop()
+
+		if intResult <= 0 {
+			errorListener.Errors = append(
+				errorListener.Errors,
+				errors.New("Result is negative or zero, do not know how to represent it"),
+			)
+		}
 	}
 
 	return intResult, errorListener.Errors
